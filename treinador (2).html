@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NOVO FITNESS — Painel do Treinador</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0a0a0c;--surface:#111116;--card:#16161d;--border:#22222e;--accent:#e8ff47;--a2:#ff4747;--a3:#47c2ff;--text:#f0f0f0;--muted:#6b6b7a;--green:#3dff8f;--orange:#ff8a3d}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.5}
+.shell{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 20px 80px}
+header{display:flex;align-items:center;justify-content:space-between;padding:28px 0 20px;border-bottom:1px solid var(--border);margin-bottom:28px;flex-wrap:wrap;gap:12px}
+.brand{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:3px;color:var(--accent)}
+.brand span{color:var(--muted);font-size:12px;display:block;font-family:'DM Sans',sans-serif;letter-spacing:1px;font-weight:300;margin-top:2px}
+.sl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:14px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media(max-width:900px){.g4{grid-template-columns:1fr 1fr}}
+@media(max-width:580px){.g2,.g4{grid-template-columns:1fr}}
+section{margin-bottom:32px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;position:relative;overflow:hidden;transition:border-color .2s}
+.card:hover{border-color:#33334a}
+.acl{position:absolute;top:0;left:0;right:0;height:2px}
+.ay{background:var(--accent)}.ab{background:var(--a3)}.ag{background:var(--green)}.ao{background:var(--orange)}.ar{background:var(--a2)}
+.ct{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.cv{font-family:'Bebas Neue',sans-serif;font-size:40px;letter-spacing:1px;line-height:1}
+.lbar{height:3px;background:linear-gradient(90deg,var(--accent),var(--a3),var(--accent));background-size:200%;animation:lb 1.2s linear infinite;border-radius:2px;margin-bottom:20px}
+@keyframes lb{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.nav{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:28px;flex-wrap:wrap;overflow-x:auto}
+.nav-tab{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;padding:12px 18px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;text-transform:uppercase;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.nav-tab:hover:not(.active){color:var(--text)}
+.page{display:none}.page.active{display:block}
+
+/* FILTROS DE PLANO */
+.plano-filtros{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.plano-btn{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;text-transform:uppercase}
+.plano-btn.active{background:var(--accent);color:#0a0a0c;border-color:var(--accent);font-weight:700}
+.plano-btn:hover:not(.active){border-color:#44445a;color:var(--text)}
+
+/* ALUNO CARD */
+.aluno-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:10px}
+.aluno-card:hover{border-color:var(--accent);transform:translateX(4px)}
+.aluno-card.borda-ok{border-left:3px solid var(--green)}
+.aluno-card.borda-atencao{border-left:3px solid var(--orange)}
+.aluno-card.borda-risco{border-left:3px solid var(--a2)}
+.aluno-nome-card{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px}
+.aluno-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-family:'JetBrains Mono',monospace;letter-spacing:1px;font-weight:700}
+.badge-ok{background:#0f1a09;color:var(--green);border:1px solid var(--green)}
+.badge-atencao{background:#1a1209;color:var(--orange);border:1px solid var(--orange)}
+.badge-risco{background:#1a0909;color:var(--a2);border:1px solid var(--a2)}
+.badge-neutro{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+.badge-mensal{background:#0d1a2e;color:var(--a3);border:1px solid var(--a3)}
+.badge-trimestral{background:#1a1209;color:var(--orange);border:1px solid var(--orange)}
+.badge-semestral{background:#1a0f09;color:#ff6b35;border:1px solid #ff6b35}
+
+/* PAINEL */
+#painel-aluno{display:none}
+.back-btn{display:flex;align-items:center;gap:8px;background:none;border:none;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;cursor:pointer;padding:0;margin-bottom:20px;text-transform:uppercase;transition:color .15s}
+.back-btn:hover{color:var(--text)}
+.mini-stat{text-align:center;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px}
+.mini-stat-val{font-family:'Bebas Neue',sans-serif;font-size:26px;line-height:1}
+.mini-stat-label{font-size:9px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;margin-top:4px}
+
+/* VENCIMENTO */
+.venc-card{border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:14px}
+.venc-ok{background:#0f1a09;border:1px solid var(--green)}
+.venc-atencao{background:#1a1209;border:1px solid var(--orange)}
+.venc-risco{background:#1a0909;border:1px solid var(--a2)}
+
+/* TABELAS */
+.tabela{width:100%;border-collapse:collapse}
+.tabela th{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.tabela td{padding:9px 10px;font-size:13px;border-bottom:1px solid #1a1a24;vertical-align:middle}
+.tabela tr:last-child td{border-bottom:none}
+.tabela tr:hover td{background:rgba(255,255,255,.02)}
+.delta-up{color:var(--green);font-family:'JetBrains Mono',monospace;font-size:11px}
+.delta-down{color:var(--a2);font-family:'JetBrains Mono',monospace;font-size:11px}
+
+/* CHAT / HISTÓRICO */
+.msg{padding:10px 14px;border-radius:8px;margin-bottom:8px;font-size:13px;line-height:1.6;max-width:85%}
+.msg-diego{background:#1a1f0f;border:1px solid var(--green);margin-left:auto}
+.msg-aluno{background:var(--surface);border:1px solid var(--border)}
+.msg-data{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:4px}
+
+/* FOTOS */
+.fotos-grid-t{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
+.foto-t{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.foto-t img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
+.foto-t-info{padding:8px 10px}
+.foto-t-sem{font-family:'Bebas Neue',sans-serif;font-size:16px;color:var(--accent)}
+.foto-t-data{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px}
+
+/* ALERTA */
+.alerta{background:#160f0f;border:1px solid var(--a2);border-radius:10px;padding:16px 20px;margin-bottom:12px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:opacity .2s}
+.alerta:hover{opacity:.85}
+.alerta-icon{font-size:22px;flex-shrink:0}
+
+/* BOTÕES */
+.btn{display:inline-flex;align-items:center;gap:8px;margin-top:12px;background:var(--accent);color:#0a0a0c;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;padding:12px 22px;cursor:pointer;letter-spacing:.5px;transition:all .15s}
+.btn:hover{background:#d4eb30;transform:translateY(-1px)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-g{background:var(--surface);color:var(--text);border:1px solid var(--border)}
+.btn-g:hover{border-color:var(--accent);color:var(--accent);background:transparent}
+.btn-wa{background:#25D366;color:#fff}
+.btn-wa:hover{background:#20b858}
+select.inp,input.inp{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;padding:10px 14px;font-family:'DM Sans',sans-serif;transition:border-color .2s}
+select.inp{cursor:pointer}
+select.inp:focus,input.inp:focus{outline:none;border-color:var(--a3)}
+.farea{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:14px;resize:vertical;min-height:90px;transition:border-color .2s;line-height:1.6}
+.farea:focus{outline:none;border-color:var(--accent)}
+.farea::placeholder{color:var(--muted)}
+.ss{margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:12px;display:none;gap:8px;align-items:center}
+.ss.ok{color:var(--green);display:flex}.ss.err{color:var(--a2);display:flex}.ss.loading{color:var(--muted);display:flex}
+
+/* CHART */
+.chart-wrap{position:relative;height:200px;margin-top:12px}
+
+#toast{position:fixed;bottom:28px;right:20px;background:var(--accent);color:#0a0a0c;font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;padding:14px 20px;border-radius:10px;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s cubic-bezier(.4,0,.2,1);pointer-events:none}
+#toast.show{transform:translateY(0);opacity:1}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.card,.aluno-card{animation:fadeUp .4s ease both}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<header>
+  <div class="brand">NOVO FITNESS<span>PAINEL DO TREINADOR — DIEGO ROSSATO</span></div>
+  <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:1px" id="hdr-data">—</div>
+</header>
+
+<div id="app-loading"><div class="lbar"></div><div style="text-align:center;color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;padding:16px 0">CARREGANDO DADOS...</div></div>
+
+<div id="app-content" style="display:none">
+
+<nav class="nav">
+  <button class="nav-tab active" onclick="showPage('visao',this)">VISÃO GERAL</button>
+  <button class="nav-tab" onclick="showPage('alunos',this)">ALUNOS</button>
+  <button class="nav-tab" onclick="showPage('alertas',this)">ALERTAS</button>
+  <button class="nav-tab" onclick="showPage('vencimentos',this)">VENCIMENTOS</button>
+</nav>
+
+<!-- ════ VISÃO GERAL ════ -->
+<div class="page active" id="page-visao">
+  <section>
+    <div class="sl">Resumo geral</div>
+    <div class="g4">
+      <div class="card"><div class="acl ay"></div><div class="ct">Total alunos</div><div class="cv" id="vg-total" style="color:var(--accent)">0</div></div>
+      <div class="card"><div class="acl ag"></div><div class="ct">Treinando esta semana</div><div class="cv" id="vg-ativos" style="color:var(--green)">0</div></div>
+      <div class="card"><div class="acl ar"></div><div class="ct">Em risco</div><div class="cv" id="vg-risco" style="color:var(--a2)">0</div></div>
+      <div class="card"><div class="acl ao"></div><div class="ct">Vencendo em 7 dias</div><div class="cv" id="vg-vencendo" style="color:var(--orange)">0</div></div>
+    </div>
+  </section>
+
+  <!-- SATISFAÇÃO MÉDIA -->
+  <section>
+    <div class="sl">Satisfação média dos alunos</div>
+    <div class="g2">
+      <div class="card">
+        <div class="acl ay"></div>
+        <div class="ct">Nota média este mês</div>
+        <div style="display:flex;align-items:baseline;gap:10px">
+          <div class="cv" id="vg-satisfacao" style="color:var(--accent)">—</div>
+          <div style="font-size:14px;color:var(--muted)">/10</div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px" id="vg-satisfacao-label">Sem avaliações ainda</div>
+      </div>
+      <div class="card">
+        <div class="acl ab"></div>
+        <div class="ct">KM total da semana</div>
+        <div class="cv" id="vg-km" style="color:var(--a3)">0</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:6px">todos os alunos</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sl">Status dos alunos</div>
+    <div class="plano-filtros">
+      <button class="plano-btn active" onclick="filtrarPlano('todos',this)">TODOS</button>
+      <button class="plano-btn" onclick="filtrarPlano('mensal',this)">MENSAL</button>
+      <button class="plano-btn" onclick="filtrarPlano('trimestral',this)">TRIMESTRAL</button>
+      <button class="plano-btn" onclick="filtrarPlano('semestral',this)">SEMESTRAL</button>
+    </div>
+    <div id="lista-visao-geral"></div>
+  </section>
+</div>
+
+<!-- ════ ALUNOS ════ -->
+<div class="page" id="page-alunos">
+  <div id="lista-alunos-wrap">
+    <section>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div class="sl" style="margin-bottom:0">Todos os alunos</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input id="busca-aluno" class="inp" type="text" placeholder="Buscar..." style="width:180px" oninput="filtrarAlunos(this.value)">
+        </div>
+      </div>
+      <div class="plano-filtros" id="plano-filtros-alunos">
+        <button class="plano-btn active" onclick="filtrarPlanoAlunos('todos',this)">TODOS</button>
+        <button class="plano-btn" onclick="filtrarPlanoAlunos('mensal',this)">MENSAL</button>
+        <button class="plano-btn" onclick="filtrarPlanoAlunos('trimestral',this)">TRIMESTRAL</button>
+        <button class="plano-btn" onclick="filtrarPlanoAlunos('semestral',this)">SEMESTRAL</button>
+      </div>
+      <div id="lista-alunos"></div>
+    </section>
+  </div>
+
+  <!-- PAINEL INDIVIDUAL -->
+  <div id="painel-aluno">
+    <button class="back-btn" onclick="voltarLista()">← VOLTAR PARA LISTA</button>
+
+    <!-- HEADER DO ALUNO -->
+    <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:24px;flex-wrap:wrap">
+      <div style="flex:1">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:1px" id="pa-nome">—</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px" id="pa-info">—</div>
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap" id="pa-badges"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start">
+        <a id="pa-wa-btn" href="#" target="_blank" class="btn btn-wa" style="margin-top:0;text-decoration:none;display:none">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          WhatsApp
+        </a>
+      </div>
+    </div>
+
+    <!-- VENCIMENTO DO PLANO -->
+    <div id="pa-vencimento-wrap"></div>
+
+    <!-- KPIs -->
+    <section>
+      <div class="sl">Esta semana</div>
+      <div class="g4">
+        <div class="mini-stat"><div class="mini-stat-val" id="pa-freq" style="color:var(--accent)">—</div><div class="mini-stat-label">FREQUÊNCIA</div></div>
+        <div class="mini-stat"><div class="mini-stat-val" id="pa-km" style="color:var(--a3)">—</div><div class="mini-stat-label">KM CORRIDA</div></div>
+        <div class="mini-stat"><div class="mini-stat-val" id="pa-satisfacao" style="color:var(--green)">—</div><div class="mini-stat-label">SATISFAÇÃO</div></div>
+        <div class="mini-stat"><div class="mini-stat-val" id="pa-energia" style="color:var(--orange)">—</div><div class="mini-stat-label">ENERGIA MÉDIA</div></div>
+      </div>
+    </section>
+
+    <!-- TABS -->
+    <div class="nav" style="margin-top:0">
+      <button class="nav-tab active" onclick="showPainelTab('cargas',this)">CARGAS</button>
+      <button class="nav-tab" onclick="showPainelTab('corrida',this)">CORRIDA</button>
+      <button class="nav-tab" onclick="showPainelTab('fotos',this)">FOTOS</button>
+      <button class="nav-tab" onclick="showPainelTab('metas',this)">METAS</button>
+      <button class="nav-tab" onclick="showPainelTab('comunicacao',this)">COMUNICAÇÃO</button>
+      <button class="nav-tab" onclick="showPainelTab('anamnese',this)">ANAMNESE</button>
+      <button class="nav-tab" onclick="showPainelTab('plano',this)">PLANO</button>
+    </div>
+
+    <!-- CARGAS -->
+    <div class="page active" id="ptab-cargas">
+      <section>
+        <div class="card">
+          <div class="acl ag"></div>
+          <div style="overflow-x:auto">
+            <table class="tabela">
+              <thead><tr><th>Exercício</th><th>Treino</th><th>Semana</th><th>Carga</th><th>Anterior</th><th>Δ</th></tr></thead>
+              <tbody id="pa-cargas-body"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">Sem dados ainda.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+      <section>
+        <div class="card">
+          <div class="acl ag"></div>
+          <select id="sel-ex-pa" class="inp" onchange="renderCargaChart()" style="margin-bottom:12px;width:100%">
+            <option value="">Selecionar exercício para ver gráfico</option>
+          </select>
+          <div class="chart-wrap"><canvas id="chart-carga-pa"></canvas></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- CORRIDA -->
+    <div class="page" id="ptab-corrida">
+      <section>
+        <div class="card">
+          <div class="acl ab"></div>
+          <div id="pa-corridas-lista" style="font-size:13px;color:var(--muted)">Sem corridas registradas.</div>
+        </div>
+      </section>
+      <section>
+        <div class="card">
+          <div class="acl ab"></div>
+          <div style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:2px;margin-bottom:12px">EVOLUÇÃO DE PACE (seg/km — menor é melhor)</div>
+          <div class="chart-wrap"><canvas id="chart-pace-pa"></canvas></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- FOTOS -->
+    <div class="page" id="ptab-fotos">
+      <section>
+        <div class="card">
+          <div class="acl ao"></div>
+          <div class="fotos-grid-t" id="pa-fotos-grid">
+            <div style="color:var(--muted);font-size:13px">Sem fotos ainda.</div>
+          </div>
+        </div>
+      </section>
+      <section>
+        <div class="card">
+          <div class="acl ao"></div>
+          <div style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:2px;margin-bottom:12px">EVOLUÇÃO DE PESO (kg)</div>
+          <div class="chart-wrap"><canvas id="chart-peso-pa"></canvas></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- METAS E SATISFAÇÃO -->
+    <div class="page" id="ptab-metas">
+      <section>
+        <div class="sl">Metas mensais</div>
+        <div id="pa-metas-lista" style="color:var(--muted);font-size:13px">Sem metas registradas.</div>
+      </section>
+      <section>
+        <div class="sl">Avaliações de satisfação</div>
+        <div class="card">
+          <div class="acl ay"></div>
+          <div class="chart-wrap"><canvas id="chart-satisfacao-pa"></canvas></div>
+        </div>
+        <div id="pa-avaliacoes-lista" style="margin-top:12px"></div>
+      </section>
+    </div>
+
+    <!-- COMUNICAÇÃO -->
+    <div class="page" id="ptab-comunicacao">
+      <section>
+        <div class="sl">Histórico de comunicação</div>
+        <div id="pa-historico-chat" style="max-height:400px;overflow-y:auto;padding:4px"></div>
+      </section>
+      <section>
+        <div class="sl">Novo recado</div>
+        <div class="card">
+          <div class="acl ay"></div>
+          <textarea class="farea" id="recado-input" placeholder="Ex: Vi que seu joelho melhorou. Aumentei a carga do agachamento no mês 2. Continue assim."></textarea>
+          <button class="btn" onclick="enviarRecado()">ENVIAR RECADO</button>
+          <div class="ss" id="st-recado"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ANAMNESE -->
+    <div class="page" id="ptab-anamnese">
+      <section>
+        <div class="card">
+          <div class="acl ay"></div>
+          <div id="pa-anamnese-dados" style="font-size:13px;line-height:2.2;color:var(--muted)">Carregando...</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- PLANO -->
+    <div class="page" id="ptab-plano">
+      <section>
+        <div class="sl">Configurar plano do aluno</div>
+        <div class="card">
+          <div class="acl ay"></div>
+          <div style="display:grid;gap:14px">
+            <div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-family:'JetBrains Mono',monospace;letter-spacing:1px">TIPO DE PLANO</div>
+              <select id="plano-tipo" class="inp" style="width:100%">
+                <option value="">Selecionar</option>
+                <option value="mensal">Mensal</option>
+                <option value="trimestral">Trimestral</option>
+                <option value="semestral">Semestral</option>
+              </select>
+            </div>
+            <div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-family:'JetBrains Mono',monospace;letter-spacing:1px">DATA DE INÍCIO</div>
+              <input type="date" id="plano-inicio" class="inp" style="width:100%">
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:13px;color:var(--muted)" id="plano-preview">
+              Selecione o plano para ver a data de vencimento.
+            </div>
+            <button class="btn" onclick="salvarPlano()">SALVAR PLANO</button>
+            <div class="ss" id="st-plano"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </div><!-- /painel-aluno -->
+</div><!-- /page-alunos -->
+
+<!-- ════ ALERTAS ════ -->
+<div class="page" id="page-alertas">
+  <section>
+    <div class="sl">Alunos sem treinar há 5+ dias</div>
+    <div id="alertas-inativos"><div style="color:var(--muted);font-size:13px">Carregando...</div></div>
+  </section>
+  <section>
+    <div class="sl">Satisfação abaixo de 6</div>
+    <div id="alertas-satisfacao"><div style="color:var(--muted);font-size:13px">Carregando...</div></div>
+  </section>
+  <section>
+    <div class="sl">Sem feedback este mês</div>
+    <div id="alertas-feedback"><div style="color:var(--muted);font-size:13px">Carregando...</div></div>
+  </section>
+</div>
+
+<!-- ════ VENCIMENTOS ════ -->
+<div class="page" id="page-vencimentos">
+  <section>
+    <div class="sl">Vencendo nos próximos 7 dias</div>
+    <div id="venc-7dias"><div style="color:var(--muted);font-size:13px">Carregando...</div></div>
+  </section>
+  <section>
+    <div class="sl">Vencendo nos próximos 30 dias</div>
+    <div id="venc-30dias"><div style="color:var(--muted);font-size:13px">Carregando...</div></div>
+  </section>
+  <section>
+    <div class="sl">Planos vencidos</div>
+    <div id="venc-vencidos"><div style="color:var(--muted);font-size:13px">Carregando...</div></div>
+  </section>
+</div>
+
+</div><!-- /app-content -->
+</div><!-- /shell -->
+<div id="toast"></div>
+
+<script>
+const WEBHOOK = 'https://script.google.com/macros/s/AKfycbxPKsUF2gu-cpp2Jlzv5VNKI7w-VvBFHd5JEVuPj54AfyIFKPufz59JReVgf5IJOF8uRQ/exec';
+
+let todosAlunos = [];
+let alunoAtual = null;
+let dadosAluno = null;
+let chartsPA = {};
+let filtroPlanoAtual = 'todos';
+
+// ── UTILS ──────────────────────────────────────────────────
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3000);}
+function setSt(id,tipo,msg){const el=document.getElementById(id);el.className='ss '+tipo;el.textContent=msg;if(tipo==='ok')setTimeout(()=>{el.className='ss';},5000);}
+async function getData(params){const qs=new URLSearchParams({...params,t:Date.now()}).toString();const r=await fetch(WEBHOOK+'?'+qs);return await r.json();}
+async function postData(payload){const r=await fetch(WEBHOOK,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload)});return await r.json();}
+
+function renderChart(id,labels,datasets,tipo='line'){
+  if(chartsPA[id])chartsPA[id].destroy();
+  const ctx=document.getElementById(id);if(!ctx)return;
+  chartsPA[id]=new Chart(ctx.getContext('2d'),{
+    type:tipo,data:{labels,datasets},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:datasets.length>1,labels:{color:'#6b6b7a',font:{family:'JetBrains Mono',size:10}}},tooltip:{backgroundColor:'#1e1e28',titleColor:'#f0f0f0',bodyColor:'#6b6b7a',borderColor:'#22222e',borderWidth:1}},
+      scales:{x:{grid:{color:'#22222e'},ticks:{color:'#6b6b7a',font:{family:'JetBrains Mono',size:10}}},y:{grid:{color:'#22222e'},ticks:{color:'#6b6b7a',font:{family:'JetBrains Mono',size:10}},beginAtZero:false}}}
+  });
+}
+
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+function showPainelTab(id,btn){
+  document.querySelectorAll('#painel-aluno .page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('#painel-aluno .nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('ptab-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── PLANO UTILS ────────────────────────────────────────────
+const PLANO_MESES = {mensal:1,trimestral:3,semestral:6};
+function calcVencimento(inicio,tipo){
+  if(!inicio||!tipo)return null;
+  const d=new Date(inicio);
+  d.setMonth(d.getMonth()+(PLANO_MESES[tipo]||1));
+  return d;
+}
+function diasParaVencer(venc){
+  if(!venc)return null;
+  return Math.ceil((new Date(venc)-new Date())/(1000*60*60*24));
+}
+function badgePlano(tipo){
+  const classes={mensal:'badge-mensal',trimestral:'badge-trimestral',semestral:'badge-semestral'};
+  const labels={mensal:'MENSAL',trimestral:'TRIMESTRAL',semestral:'SEMESTRAL'};
+  return tipo?`<span class="badge ${classes[tipo]||'badge-neutro'}">${labels[tipo]||tipo.toUpperCase()}</span>`:'';
+}
+
+// ── INIT ───────────────────────────────────────────────────
+async function init(){
+  document.getElementById('hdr-data').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'}).toUpperCase();
+  try{
+    const d=await getData({action:'todos_alunos'});
+    if(!d.ok)throw new Error(d.erro||'Erro ao carregar');
+    todosAlunos=d.alunos||[];
+    document.getElementById('app-loading').style.display='none';
+    document.getElementById('app-content').style.display='block';
+    renderVisaoGeral();
+    renderListaAlunos();
+    renderAlertas();
+    renderVencimentos();
+  }catch(e){
+    document.getElementById('app-loading').innerHTML=`<div style="text-align:center;color:var(--a2);padding:40px;font-family:'JetBrains Mono',monospace;font-size:12px">ERRO: ${e.message}</div>`;
+  }
+}
+
+// ── VISÃO GERAL ────────────────────────────────────────────
+function renderVisaoGeral(filtro='todos'){
+  const lista=filtro==='todos'?todosAlunos:todosAlunos.filter(a=>a.plano===filtro);
+  const ativos=lista.filter(a=>a.frequencia>=60).length;
+  const risco=lista.filter(a=>a.diasSemTreinar>=5).length;
+  const vencendo=lista.filter(a=>{const d=diasParaVencer(a.planoVencimento);return d!==null&&d>=0&&d<=7;}).length;
+  const km=lista.reduce((s,a)=>s+(parseFloat(a.kmSemana)||0),0);
+  const avaliacoes=lista.filter(a=>a.ultimaAvaliacao).map(a=>parseFloat(a.ultimaAvaliacao)||0);
+  const mediaAval=avaliacoes.length?(avaliacoes.reduce((a,b)=>a+b,0)/avaliacoes.length).toFixed(1):null;
+
+  document.getElementById('vg-total').textContent=lista.length;
+  document.getElementById('vg-ativos').textContent=ativos;
+  document.getElementById('vg-risco').textContent=risco;
+  document.getElementById('vg-vencendo').textContent=vencendo;
+  document.getElementById('vg-km').textContent=km.toFixed(1);
+  document.getElementById('vg-satisfacao').textContent=mediaAval||'—';
+  document.getElementById('vg-satisfacao-label').textContent=mediaAval
+    ?`Média de ${avaliacoes.length} avaliação(ões) este mês`:'Sem avaliações ainda';
+
+  document.getElementById('lista-visao-geral').innerHTML=lista.map(a=>{
+    const dias=diasParaVencer(a.planoVencimento);
+    const vencCor=dias===null?'':`color:${dias<=7?'var(--a2)':dias<=30?'var(--orange)':'var(--green)'}`;
+    return `<div class="aluno-card borda-${a.diasSemTreinar>=7?'risco':a.diasSemTreinar>=5?'atencao':'ok'}" onclick="abrirAluno('${a.nome}');document.querySelector('[onclick*=alunos]').click()">
+      <div>
+        <div class="aluno-nome-card">${a.nome}</div>
+        <div class="aluno-sub">${a.objetivo||'—'} · Sem. ${a.semana||'—'}${dias!==null?` · <span style="${vencCor}">Vence em ${dias} dias</span>`:''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        ${badgePlano(a.plano)}
+        <span class="badge badge-neutro">${a.frequencia||0}% freq.</span>
+        ${a.ultimaAvaliacao?`<span class="badge badge-neutro">⭐ ${a.ultimaAvaliacao}/10</span>`:''}
+        <span class="badge ${a.diasSemTreinar>=7?'badge-risco':a.diasSemTreinar>=5?'badge-atencao':'badge-ok'}">
+          ${a.diasSemTreinar>=7?'⚠️ RISCO':a.diasSemTreinar>=5?'⏰ ATENÇÃO':'✓ OK'}
+        </span>
+      </div>
+    </div>`;
+  }).join('')||'<div style="color:var(--muted);padding:20px;font-size:13px">Nenhum aluno neste grupo.</div>';
+}
+
+function filtrarPlano(tipo,btn){
+  filtroPlanoAtual=tipo;
+  document.querySelectorAll('#page-visao .plano-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderVisaoGeral(tipo);
+}
+
+// ── LISTA DE ALUNOS ────────────────────────────────────────
+let filtroPlanoAlunos='todos';
+function renderListaAlunos(busca=''){
+  let lista=filtroPlanoAlunos==='todos'?todosAlunos:todosAlunos.filter(a=>a.plano===filtroPlanoAlunos);
+  if(busca)lista=lista.filter(a=>a.nome.toLowerCase().includes(busca.toLowerCase()));
+  document.getElementById('lista-alunos').innerHTML=lista.map(a=>`
+    <div class="aluno-card borda-${a.diasSemTreinar>=7?'risco':a.diasSemTreinar>=5?'atencao':'ok'}" onclick="abrirAluno('${a.nome}')">
+      <div>
+        <div class="aluno-nome-card">${a.nome}</div>
+        <div class="aluno-sub">${a.objetivo||'—'} · ${a.nivel||'—'} · Sem. ${a.semana||'—'}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        ${badgePlano(a.plano)}
+        <span class="badge badge-neutro">${a.frequencia||0}%</span>
+        ${a.ultimaAvaliacao?`<span class="badge badge-neutro">⭐${a.ultimaAvaliacao}</span>`:''}
+        <span class="badge ${a.diasSemTreinar>=7?'badge-risco':a.diasSemTreinar>=5?'badge-atencao':'badge-ok'}">
+          ${a.diasSemTreinar>=7?'⚠️':a.diasSemTreinar>=5?'⏰':'✓'}
+        </span>
+        <span style="color:var(--muted);font-size:18px">›</span>
+      </div>
+    </div>`).join('')||'<div style="color:var(--muted);padding:20px;font-size:13px">Nenhum aluno encontrado.</div>';
+}
+function filtrarAlunos(q){renderListaAlunos(q);}
+function filtrarPlanoAlunos(tipo,btn){
+  filtroPlanoAlunos=tipo;
+  document.querySelectorAll('#plano-filtros-alunos .plano-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderListaAlunos(document.getElementById('busca-aluno').value);
+}
+
+// ── PAINEL INDIVIDUAL ──────────────────────────────────────
+async function abrirAluno(nome){
+  alunoAtual=nome;
+  document.getElementById('lista-alunos-wrap').style.display='none';
+  document.getElementById('painel-aluno').style.display='block';
+
+  const a=todosAlunos.find(x=>x.nome===nome)||{};
+  document.getElementById('pa-nome').textContent=nome;
+  document.getElementById('pa-info').textContent=`${a.objetivo||'—'} · ${a.nivel||'—'} · Semana ${a.semana||'—'}`;
+
+  // Badges
+  const badges=document.getElementById('pa-badges');
+  badges.innerHTML=badgePlano(a.plano)+(a.diasSemTreinar>=7?'<span class="badge badge-risco" style="margin-left:6px">⚠️ SEM TREINAR '+a.diasSemTreinar+' DIAS</span>':'');
+
+  // WhatsApp
+  const waBtn=document.getElementById('pa-wa-btn');
+  if(a.whatsapp){
+    const num=a.whatsapp.replace(/\D/g,'');
+    waBtn.href=`https://wa.me/55${num}?text=Ol%C3%A1+${encodeURIComponent(nome.split(' ')[0])}!+Passando+para+verificar+como+est%C3%A3o+seus+treinos.`;
+    waBtn.style.display='inline-flex';
+  }else{waBtn.style.display='none';}
+
+  // Vencimento
+  const vencWrap=document.getElementById('pa-vencimento-wrap');
+  if(a.plano&&a.planoInicio){
+    const venc=calcVencimento(a.planoInicio,a.plano);
+    const dias=diasParaVencer(venc);
+    const cls=dias<=0?'venc-risco':dias<=7?'venc-risco':dias<=30?'venc-atencao':'venc-ok';
+    const icone=dias<=0?'🔴':dias<=7?'⚠️':dias<=30?'⏰':'✓';
+    vencWrap.innerHTML=`<div class="venc-card ${cls}" style="margin-bottom:20px">
+      <div style="font-size:22px">${icone}</div>
+      <div>
+        <div style="font-weight:600;font-size:14px">${badgePlano(a.plano)} · Vencimento: ${venc?venc.toLocaleDateString('pt-BR'):'—'}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">${dias<=0?'Plano vencido':dias===0?'Vence hoje':'Vence em '+dias+' dia(s)'}</div>
+      </div>
+    </div>`;
+  }else{vencWrap.innerHTML='';}
+
+  // KPIs
+  document.getElementById('pa-freq').textContent=(a.frequencia||0)+'%';
+  document.getElementById('pa-km').textContent=parseFloat(a.kmSemana||0).toFixed(1)+'km';
+  document.getElementById('pa-satisfacao').textContent=a.ultimaAvaliacao?a.ultimaAvaliacao+'/10':'—';
+  document.getElementById('pa-energia').textContent=a.energiaMedio?a.energiaMedio+'/5':'—';
+
+  // Plano form
+  if(a.plano)document.getElementById('plano-tipo').value=a.plano;
+  if(a.planoInicio)document.getElementById('plano-inicio').value=a.planoInicio;
+  atualizarPreviewPlano();
+
+  // Carregar dados
+  try{
+    const d=await getData({action:'historico',aluno:nome});
+    if(d.ok){dadosAluno=d.historico;renderCargasTab();renderCorridaTab();}
+  }catch(e){}
+
+  try{
+    const f=await getData({action:'fotos',aluno:nome});
+    if(f.ok)renderFotosTab(f.fotos||[]);
+  }catch(e){}
+
+  try{
+    const m=await getData({action:'metas_avaliacoes',aluno:nome});
+    if(m.ok)renderMetasTab(m.metas||[],m.avaliacoes||[]);
+  }catch(e){}
+
+  try{
+    const com=await getData({action:'comunicacao',aluno:nome});
+    if(com.ok)renderComunicacao(com.historico||[]);
+  }catch(e){}
+
+  // Anamnese
+  const an=a.anamnese||{};
+  const campos=[
+    ['Email',an.email],['WhatsApp',an.whatsapp||a.whatsapp],
+    ['Idade',an.idade?an.idade+' anos':null],['Peso',an.peso?an.peso+'kg':null],
+    ['Altura',an.altura?an.altura+'cm':null],['Objetivo',an.objetivo],
+    ['Nível',an.nivel],['Acorda às',an.acordaAs],
+    ['Trabalho',an.trabalhoEntrada&&an.trabalhoSaida?an.trabalhoEntrada+' — '+an.trabalhoSaida:null],
+    ['Horário treino',an.horarioTreino],['Dias disponíveis',an.diasDisponiveis],
+    ['Jiu-jitsu',an.diasJiu?an.diasJiu+' dia(s)/sem':null],
+    ['Corre',an.corre],['Tempo 3km',an.tempo3km],
+    ['Dores/lesões',an.dores],['Histórico',an.historico],
+  ].filter(([,v])=>v);
+
+  document.getElementById('pa-anamnese-dados').innerHTML=campos.length
+    ?campos.map(([k,v])=>`<div style="display:flex;gap:12px;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text);font-weight:600;min-width:150px;flex-shrink:0">${k}</span><span>${v}</span></div>`).join('')
+    :'<span style="color:var(--muted)">Sem dados de anamnese.</span>';
+
+  showPainelTab('cargas',document.querySelector('#painel-aluno .nav-tab'));
+}
+
+function voltarLista(){
+  document.getElementById('lista-alunos-wrap').style.display='block';
+  document.getElementById('painel-aluno').style.display='none';
+  alunoAtual=null;dadosAluno=null;
+}
+
+// ── TABS DO PAINEL ─────────────────────────────────────────
+function renderCargasTab(){
+  if(!dadosAluno)return;
+  const cargas=dadosAluno.cargas||[];
+  const tbody=document.getElementById('pa-cargas-body');
+  if(!cargas.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">Sem dados de carga ainda.</td></tr>';return;}
+  const sorted=[...cargas].sort((a,b)=>(parseInt(b.semana)||0)-(parseInt(a.semana)||0));
+  tbody.innerHTML=sorted.slice(0,30).map(c=>{
+    const d=c.delta&&c.delta!=='—'?parseFloat(c.delta):null;
+    const dh=d!==null?(d>0?`<span class="delta-up">+${d}↑</span>`:d<0?`<span class="delta-down">${d}↓</span>`:'<span style="color:var(--muted)">=</span>'):'—';
+    return `<tr><td style="font-weight:600">${c.exercicio||'—'}</td><td style="font-size:11px;color:var(--muted)">${c.treino||'—'}</td><td><span class="badge badge-neutro">Sem ${c.semana||'—'}</span></td><td style="font-family:'Bebas Neue',sans-serif;font-size:18px">${c.atual||'—'}kg</td><td style="color:var(--muted)">${c.anterior||'—'}kg</td><td>${dh}</td></tr>`;
+  }).join('');
+  const exs=[...new Set(cargas.map(c=>c.exercicio).filter(Boolean))];
+  const sel=document.getElementById('sel-ex-pa');
+  sel.innerHTML='<option value="">Selecionar exercício</option>'+exs.map(e=>`<option>${e}</option>`).join('');
+}
+
+function renderCargaChart(){
+  if(!dadosAluno)return;
+  const ex=document.getElementById('sel-ex-pa').value;if(!ex)return;
+  const dados=(dadosAluno.cargas||[]).filter(c=>c.exercicio===ex&&parseFloat(c.atual)>0);
+  const sems=[...new Set(dados.map(c=>parseInt(c.semana)||0))].sort((a,b)=>a-b);
+  const vals=sems.map(s=>Math.max(...dados.filter(c=>parseInt(c.semana)===s).map(c=>parseFloat(c.atual)||0)));
+  renderChart('chart-carga-pa',sems.map(s=>'Sem '+s),[{label:ex,data:vals,borderColor:'rgba(61,255,143,0.8)',backgroundColor:'rgba(61,255,143,0.1)',borderWidth:2,pointRadius:4,fill:true,tension:0.3}]);
+}
+
+function renderCorridaTab(){
+  if(!dadosAluno)return;
+  const corridas=dadosAluno.corridas||[];
+  if(!corridas.length){document.getElementById('pa-corridas-lista').innerHTML='<div style="color:var(--muted);font-size:13px;padding:16px 0">Sem corridas registradas.</div>';return;}
+  document.getElementById('pa-corridas-lista').innerHTML=corridas.map(c=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:6px">
+      <div><div style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace">SEM ${c.semana||'—'} · ${c.metodo||'—'}</div></div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--a3)">${c.km}km</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:12px">${c.pace||'--:--'}<br><span style="font-size:9px;color:var(--muted)">min/km</span></div>
+      <div style="font-size:10px;background:var(--surface);border-radius:4px;padding:2px 8px;border:1px solid var(--border)">PSE ${c.pse||'—'}</div>
+    </div>`).join('');
+  const paces=corridas.filter(c=>c.pace&&c.pace!=='--:--').map(c=>{const pts=c.pace.split(':');return{sem:parseInt(c.semana)||0,val:pts.length===2?parseInt(pts[0])*60+parseInt(pts[1]):null};}).filter(c=>c.val);
+  if(paces.length>=2){
+    const sems=[...new Set(paces.map(p=>p.sem))].sort((a,b)=>a-b);
+    const vals=sems.map(s=>{const ps=paces.filter(p=>p.sem===s).map(p=>p.val);return ps.length?Math.round(ps.reduce((a,b)=>a+b,0)/ps.length):null;}).filter(Boolean);
+    renderChart('chart-pace-pa',sems.map(s=>'Sem '+s),[{label:'Pace médio',data:vals,borderColor:'rgba(71,194,255,0.8)',backgroundColor:'rgba(71,194,255,0.1)',borderWidth:2,pointRadius:4,fill:true,tension:0.3}]);
+  }
+}
+
+function renderFotosTab(fotos){
+  const grid=document.getElementById('pa-fotos-grid');
+  if(!fotos.length){grid.innerHTML='<div style="color:var(--muted);font-size:13px">Sem fotos enviadas ainda.</div>';return;}
+  grid.innerHTML=fotos.map(f=>`<div class="foto-t"><img src="${f.viewUrl}" alt="Sem ${f.semana}" onerror="this.parentElement.innerHTML='<div style=padding:20px;text-align:center;color:var(--muted);font-size:11px>Sem preview</div>'"><div class="foto-t-info"><div class="foto-t-sem">SEMANA ${f.semana||'—'}</div><div class="foto-t-data">${(f.data||'').split(' ')[0]}</div></div></div>`).join('');
+  const pesos=dadosAluno&&dadosAluno.pesos?dadosAluno.pesos:[];
+  if(pesos.length>=2){
+    renderChart('chart-peso-pa',pesos.map(p=>'Sem '+(p.semana||'—')),[{label:'Peso (kg)',data:pesos.map(p=>parseFloat(p.peso)||0),borderColor:'rgba(255,138,61,0.8)',backgroundColor:'rgba(255,138,61,0.1)',borderWidth:2,pointRadius:4,fill:true,tension:0.3}]);
+  }
+}
+
+function renderMetasTab(metas,avaliacoes){
+  const ml=document.getElementById('pa-metas-lista');
+  ml.innerHTML=metas.length?metas.map(m=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:8px"><div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:4px">SEM ${m.semana||'—'} · ${m.data||''}</div><div style="font-size:13px">${m.meta}</div></div>`).join(''):'<div style="color:var(--muted);font-size:13px">Sem metas registradas.</div>';
+
+  const al=document.getElementById('pa-avaliacoes-lista');
+  al.innerHTML=avaliacoes.length?avaliacoes.map(a=>{const cor=a.nota>=7?'var(--green)':a.nota>=5?'var(--orange)':'var(--a2)';return`<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)">Sem ${a.semana||'—'}</span><span style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:${cor}">${a.nota}/10</span></div>`;}).join(''):'';
+
+  if(avaliacoes.length>=2){
+    const labels=avaliacoes.map(a=>'Sem '+(a.semana||'—'));
+    const vals=avaliacoes.map(a=>parseFloat(a.nota)||0);
+    renderChart('chart-satisfacao-pa',labels,[{label:'Satisfação',data:vals,borderColor:'rgba(232,255,71,0.8)',backgroundColor:'rgba(232,255,71,0.1)',borderWidth:2,pointRadius:4,fill:true,tension:0.3}]);
+  }
+}
+
+function renderComunicacao(historico){
+  const wrap=document.getElementById('pa-historico-chat');
+  if(!historico.length){wrap.innerHTML='<div style="color:var(--muted);font-size:13px">Sem histórico de comunicação ainda.</div>';return;}
+  wrap.innerHTML=historico.map(h=>`
+    <div class="msg ${h.tipo==='diego'?'msg-diego':'msg-aluno'}">
+      <div style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:4px">${h.tipo==='diego'?'DIEGO':'ALUNO'}</div>
+      <div>${h.texto}</div>
+      <div class="msg-data">${h.data||''}</div>
+    </div>`).join('');
+  wrap.scrollTop=wrap.scrollHeight;
+}
+
+// ── PLANO ──────────────────────────────────────────────────
+function atualizarPreviewPlano(){
+  const tipo=document.getElementById('plano-tipo').value;
+  const inicio=document.getElementById('plano-inicio').value;
+  const preview=document.getElementById('plano-preview');
+  if(!tipo||!inicio){preview.textContent='Selecione o plano para ver a data de vencimento.';return;}
+  const venc=calcVencimento(inicio,tipo);
+  const dias=diasParaVencer(venc);
+  const cor=dias<=0?'var(--a2)':dias<=30?'var(--orange)':'var(--green)';
+  preview.innerHTML=`<span style="color:var(--text)">Vencimento:</span> <strong style="color:${cor}">${venc.toLocaleDateString('pt-BR')}</strong> <span style="color:var(--muted)">(${dias<=0?'vencido':dias+' dias restantes'})</span>`;
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const pt=document.getElementById('plano-tipo');
+  const pi=document.getElementById('plano-inicio');
+  if(pt)pt.addEventListener('change',atualizarPreviewPlano);
+  if(pi)pi.addEventListener('change',atualizarPreviewPlano);
+});
+
+async function salvarPlano(){
+  if(!alunoAtual)return;
+  const tipo=document.getElementById('plano-tipo').value;
+  const inicio=document.getElementById('plano-inicio').value;
+  if(!tipo||!inicio){toast('Selecione o plano e a data de início!');return;}
+  setSt('st-plano','loading','⏳ Salvando...');
+  try{
+    await postData({tipo:'salvar_plano',aluno:alunoAtual,plano:tipo,planoInicio:inicio});
+    // Atualizar local
+    const a=todosAlunos.find(x=>x.nome===alunoAtual);
+    if(a){a.plano=tipo;a.planoInicio=inicio;a.planoVencimento=calcVencimento(inicio,tipo);}
+    setSt('st-plano','ok','✓ Plano salvo!');toast('Plano atualizado!');
+    atualizarPreviewPlano();
+  }catch(e){setSt('st-plano','err','✗ '+e.message);}
+}
+
+// ── RECADO ─────────────────────────────────────────────────
+async function enviarRecado(){
+  if(!alunoAtual)return;
+  const txt=document.getElementById('recado-input').value.trim();
+  if(!txt){toast('Escreva o recado!');return;}
+  setSt('st-recado','loading','⏳ Enviando...');
+  try{
+    await postData({tipo:'recado',aluno:alunoAtual,mensagem:txt});
+    setSt('st-recado','ok','✓ Recado enviado! O aluno verá na próxima vez que abrir o app.');
+    document.getElementById('recado-input').value='';
+    toast('Recado enviado para '+alunoAtual.split(' ')[0]+'!');
+    // Recarregar comunicação
+    const com=await getData({action:'comunicacao',aluno:alunoAtual});
+    if(com.ok)renderComunicacao(com.historico||[]);
+  }catch(e){setSt('st-recado','err','✗ '+e.message);}
+}
+
+// ── ALERTAS ────────────────────────────────────────────────
+function renderAlertas(){
+  const inativos=document.getElementById('alertas-inativos');
+  const semTreinar=todosAlunos.filter(a=>a.diasSemTreinar>=5);
+  inativos.innerHTML=semTreinar.length?semTreinar.map(a=>`
+    <div class="alerta" onclick="abrirAluno('${a.nome}');document.querySelector('[onclick*=alunos]').click()">
+      <div class="alerta-icon">${a.diasSemTreinar>=7?'🚨':'⏰'}</div>
+      <div style="flex:1"><strong>${a.nome}</strong> — sem treinar há <strong style="color:var(--a2)">${a.diasSemTreinar} dias</strong><br><span style="font-size:12px;color:var(--muted)">Freq: ${a.frequencia||0}% ${badgePlano(a.plano)}</span></div>
+      ${a.whatsapp?`<a href="https://wa.me/55${a.whatsapp.replace(/\D/g,'')}?text=Ol%C3%A1+${encodeURIComponent(a.nome.split(' ')[0])}!" target="_blank" class="btn btn-wa" style="margin-top:0;padding:8px 14px;font-size:12px" onclick="event.stopPropagation()"><svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Chamar</a>`:''}
+    </div>`).join(''):'<div style="color:var(--green);font-size:13px;padding:16px 0">✓ Nenhum aluno em risco no momento.</div>';
+
+  const semSat=document.getElementById('alertas-satisfacao');
+  const baixaSat=todosAlunos.filter(a=>a.ultimaAvaliacao&&parseFloat(a.ultimaAvaliacao)<6);
+  semSat.innerHTML=baixaSat.length?baixaSat.map(a=>`
+    <div class="alerta" onclick="abrirAluno('${a.nome}');document.querySelector('[onclick*=alunos]').click()">
+      <div class="alerta-icon">😟</div>
+      <div><strong>${a.nome}</strong> — avaliação <strong style="color:var(--a2)">${a.ultimaAvaliacao}/10</strong><br><span style="font-size:12px;color:var(--muted)">Atenção necessária</span></div>
+    </div>`).join(''):'<div style="color:var(--green);font-size:13px;padding:16px 0">✓ Todos os alunos com boa satisfação.</div>';
+
+  const semFB=document.getElementById('alertas-feedback');
+  const sfb=todosAlunos.filter(a=>!a.ultimoFeedback);
+  semFB.innerHTML=sfb.length?sfb.map(a=>`
+    <div class="alerta" onclick="abrirAluno('${a.nome}');document.querySelector('[onclick*=alunos]').click()">
+      <div class="alerta-icon">💬</div>
+      <div><strong>${a.nome}</strong> — nunca enviou feedback ${badgePlano(a.plano)}</div>
+    </div>`).join(''):'<div style="color:var(--green);font-size:13px;padding:16px 0">✓ Todos os alunos já enviaram feedback.</div>';
+}
+
+// ── VENCIMENTOS ────────────────────────────────────────────
+function renderVencimentos(){
+  const agora=new Date();
+  const comPlano=todosAlunos.filter(a=>a.plano&&a.planoInicio);
+  comPlano.forEach(a=>{
+    const v=calcVencimento(a.planoInicio,a.plano);
+    a.planoVencimento=v;
+    a.diasVencimento=diasParaVencer(v);
+  });
+
+  const card7=comPlano.filter(a=>a.diasVencimento>=0&&a.diasVencimento<=7);
+  const card30=comPlano.filter(a=>a.diasVencimento>7&&a.diasVencimento<=30);
+  const vencidos=comPlano.filter(a=>a.diasVencimento<0);
+
+  const renderVencList=(arr,el)=>{
+    if(!arr.length){document.getElementById(el).innerHTML='<div style="color:var(--green);font-size:13px;padding:8px 0">Nenhum.</div>';return;}
+    document.getElementById(el).innerHTML=arr.map(a=>`
+      <div class="aluno-card ${a.diasVencimento<0?'borda-risco':a.diasVencimento<=7?'borda-risco':'borda-atencao'}" onclick="abrirAluno('${a.nome}');document.querySelector('[onclick*=alunos]').click()">
+        <div><div class="aluno-nome-card">${a.nome}</div><div class="aluno-sub">${badgePlano(a.plano)} · Vence: ${a.planoVencimento?a.planoVencimento.toLocaleDateString('pt-BR'):'—'}</div></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="badge ${a.diasVencimento<0?'badge-risco':'badge-atencao'}">${a.diasVencimento<0?'VENCIDO':a.diasVencimento+' DIAS'}</span>
+          ${a.whatsapp?`<a href="https://wa.me/55${a.whatsapp.replace(/\D/g,'')}?text=Ol%C3%A1+${encodeURIComponent(a.nome.split(' ')[0])}!+Seu+plano+est%C3%A1+vencendo.+Vamos+renovar%3F" target="_blank" class="btn btn-wa" style="margin-top:0;padding:8px 14px;font-size:12px" onclick="event.stopPropagation()">Renovar via WA</a>`:''}
+        </div>
+      </div>`).join('');
+  };
+
+  renderVencList(card7,'venc-7dias');
+  renderVencList(card30,'venc-30dias');
+  renderVencList(vencidos,'venc-vencidos');
+
+  document.getElementById('vg-vencendo').textContent=card7.length;
+}
+
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>

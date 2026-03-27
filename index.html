@@ -143,6 +143,7 @@ select.inp:focus,input.inp:focus{outline:none;border-color:var(--a3)}
   <button class="nav-tab" onclick="showPage('alunos',this)">ALUNOS</button>
   <button class="nav-tab" onclick="showPage('alertas',this)">ALERTAS</button>
   <button class="nav-tab" onclick="showPage('vencimentos',this)">VENCIMENTOS</button>
+  <button class="nav-tab" onclick="showPage('solicitacoes',this)">SOLICITAÇÕES <span id="badge-sol" style="background:var(--a2);color:#fff;border-radius:50%;padding:1px 6px;font-size:10px;margin-left:4px;display:none">0</span></button>
 </nav>
 
 <!-- ════ VISÃO GERAL ════ -->
@@ -423,6 +424,23 @@ select.inp:focus,input.inp:focus{outline:none;border-color:var(--a3)}
   </section>
 </div>
 
+
+<!-- ════ SOLICITAÇÕES ════ -->
+<div class="page" id="page-solicitacoes">
+  <section>
+    <div class="sl">Solicitações de acesso pendentes</div>
+    <div id="sol-lista">
+      <div style="color:var(--muted);font-size:13px;padding:20px 0">Carregando...</div>
+    </div>
+  </section>
+  <section>
+    <div class="sl">Acessos aprovados</div>
+    <div id="sol-aprovados">
+      <div style="color:var(--muted);font-size:13px;padding:8px 0">Carregando...</div>
+    </div>
+  </section>
+</div>
+
 </div><!-- /app-content -->
 </div><!-- /shell -->
 <div id="toast"></div>
@@ -454,6 +472,7 @@ function renderChart(id,labels,datasets,tipo='line'){
 }
 
 function showPage(id,btn){
+  if(id==='solicitacoes')carregarSolicitacoes();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
@@ -596,7 +615,7 @@ async function abrirAluno(nome){
   const waBtn=document.getElementById('pa-wa-btn');
   if(a.whatsapp){
     const num=a.whatsapp.replace(/\D/g,'');
-    waBtn.href=`https://wa.me/55${num}?text=Ol%C3%A1+${encodeURIComponent(nome.split(' ')[0])}!+Passando+para+verificar+como+est%C3%A3o+seus+treinos.`;
+    waBtn.href=`https://api.whatsapp.com/send?phone=55${num}&text=Ol%C3%A1+${encodeURIComponent(nome.split(' ')[0])}!+Passando+para+verificar+como+est%C3%A3o+seus+treinos.`;
     waBtn.style.display='inline-flex';
   }else{waBtn.style.display='none';}
 
@@ -815,7 +834,7 @@ function renderAlertas(){
     <div class="alerta" onclick="abrirAluno('${a.nome}');document.querySelector('[onclick*=alunos]').click()">
       <div class="alerta-icon">${a.diasSemTreinar>=7?'🚨':'⏰'}</div>
       <div style="flex:1"><strong>${a.nome}</strong> — sem treinar há <strong style="color:var(--a2)">${a.diasSemTreinar} dias</strong><br><span style="font-size:12px;color:var(--muted)">Freq: ${a.frequencia||0}% ${badgePlano(a.plano)}</span></div>
-      ${a.whatsapp?`<a href="https://wa.me/55${a.whatsapp.replace(/\D/g,'')}?text=Ol%C3%A1+${encodeURIComponent(a.nome.split(' ')[0])}!" target="_blank" class="btn btn-wa" style="margin-top:0;padding:8px 14px;font-size:12px" onclick="event.stopPropagation()"><svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Chamar</a>`:''}
+      ${a.whatsapp?`<a href="https://api.whatsapp.com/send?phone=55${a.whatsapp.replace(/\D/g,'')}&text=Ol%C3%A1+${encodeURIComponent(a.nome.split(' ')[0])}!" target="_blank" class="btn btn-wa" style="margin-top:0;padding:8px 14px;font-size:12px" onclick="event.stopPropagation()"><svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Chamar</a>`:''}
     </div>`).join(''):'<div style="color:var(--green);font-size:13px;padding:16px 0">✓ Nenhum aluno em risco no momento.</div>';
 
   const semSat=document.getElementById('alertas-satisfacao');
@@ -856,7 +875,7 @@ function renderVencimentos(){
         <div><div class="aluno-nome-card">${a.nome}</div><div class="aluno-sub">${badgePlano(a.plano)} · Vence: ${a.planoVencimento?a.planoVencimento.toLocaleDateString('pt-BR'):'—'}</div></div>
         <div style="display:flex;gap:8px;align-items:center">
           <span class="badge ${a.diasVencimento<0?'badge-risco':'badge-atencao'}">${a.diasVencimento<0?'VENCIDO':a.diasVencimento+' DIAS'}</span>
-          ${a.whatsapp?`<a href="https://wa.me/55${a.whatsapp.replace(/\D/g,'')}?text=Ol%C3%A1+${encodeURIComponent(a.nome.split(' ')[0])}!+Seu+plano+est%C3%A1+vencendo.+Vamos+renovar%3F" target="_blank" class="btn btn-wa" style="margin-top:0;padding:8px 14px;font-size:12px" onclick="event.stopPropagation()">Renovar via WA</a>`:''}
+          ${a.whatsapp?`<a href="https://api.whatsapp.com/send?phone=55${a.whatsapp.replace(/\D/g,'')}&text=Ol%C3%A1+${encodeURIComponent(a.nome.split(' ')[0])}!+Seu+plano+est%C3%A1+vencendo.+Vamos+renovar%3F" target="_blank" class="btn btn-wa" style="margin-top:0;padding:8px 14px;font-size:12px" onclick="event.stopPropagation()">Renovar via WA</a>`:''}
         </div>
       </div>`).join('');
   };
@@ -868,7 +887,79 @@ function renderVencimentos(){
   document.getElementById('vg-vencendo').textContent=card7.length;
 }
 
-document.addEventListener('DOMContentLoaded',init);
+
+// ── SOLICITAÇÕES ───────────────────────────────────────────
+async function carregarSolicitacoes() {
+  try {
+    const d = await getData({ action: 'solicitacoes' });
+    if (!d.ok) return;
+
+    const pendentes = (d.acessos || []).filter(a => a.status === 'Aguardando');
+    const aprovados = (d.acessos || []).filter(a => a.status === 'Aprovado');
+
+    // Badge na nav
+    const badge = document.getElementById('badge-sol');
+    if (badge) {
+      badge.textContent = pendentes.length;
+      badge.style.display = pendentes.length > 0 ? 'inline' : 'none';
+    }
+
+    // Lista de pendentes
+    const lista = document.getElementById('sol-lista');
+    if (lista) {
+      lista.innerHTML = pendentes.length ? pendentes.map(a => `
+        <div class="aluno-card" style="border-color:var(--orange)">
+          <div>
+            <div class="aluno-nome-card">${a.nome || '—'}</div>
+            <div class="aluno-sub">${a.email} · ${a.data || '—'}</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            ${a.whatsapp ? `<a href="https://api.whatsapp.com/send?phone=55${a.whatsapp.replace(/\D/g,'')}" target="_blank" class="btn btn-wa" style="margin-top:0;padding:8px 14px;font-size:12px">WhatsApp</a>` : ''}
+            <button class="btn" style="margin-top:0;background:var(--green);padding:8px 20px" onclick="aprovarAluno('${a.email}','${a.nome}')">✓ APROVAR</button>
+            <button class="btn" style="margin-top:0;background:var(--a2);padding:8px 20px" onclick="bloquearAluno('${a.email}')">✗ BLOQUEAR</button>
+          </div>
+        </div>`).join('')
+        : '<div style="color:var(--green);font-size:13px;padding:16px 0">✓ Nenhuma solicitação pendente.</div>';
+    }
+
+    // Lista de aprovados
+    const aprov = document.getElementById('sol-aprovados');
+    if (aprov) {
+      aprov.innerHTML = aprovados.length ? aprovados.map(a => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-weight:600">${a.nome || a.email}</div>
+            <div style="font-size:12px;color:var(--muted)">${a.email}</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="badge badge-ok">APROVADO</span>
+            <button onclick="bloquearAluno('${a.email}')" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);cursor:pointer;padding:4px 10px;font-size:11px">Revogar</button>
+          </div>
+        </div>`).join('')
+        : '<div style="color:var(--muted);font-size:13px">Nenhum acesso aprovado ainda.</div>';
+    }
+  } catch(e) {
+    console.log('Erro ao carregar solicitações:', e.message);
+  }
+}
+
+async function aprovarAluno(email, nome) {
+  try {
+    await postData({ tipo: 'aprovar_acesso', email, aluno: nome });
+    toast('✓ ' + (nome || email) + ' aprovado!');
+    carregarSolicitacoes();
+  } catch(e) { toast('Erro: ' + e.message); }
+}
+
+async function bloquearAluno(email) {
+  try {
+    await postData({ tipo: 'bloquear_acesso', email });
+    toast('Acesso revogado.');
+    carregarSolicitacoes();
+  } catch(e) { toast('Erro: ' + e.message); }
+}
+
+document.addEventListener('DOMContentLoaded', () => { init(); carregarSolicitacoes(); });
 </script>
 </body>
 </html>

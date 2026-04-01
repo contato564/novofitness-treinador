@@ -447,7 +447,7 @@ select.inp:focus,input.inp:focus{outline:none;border-color:var(--a3)}
 <div id="toast"></div>
 
 <script>
-const WEBHOOK = 'https://script.google.com/macros/s/AKfycbxbR-fT9bMlCp6N3rfoRYGPJHGBLuzoMM-XWtHUc0-CiHUdhS52T2pjmS2PxHFJl2O-Lw/exec';
+const WEBHOOK = 'https://script.google.com/macros/s/AKfycbyU3JRK9oNW3EmT6ftGKLyCyaOlEPD8p01YIMoNhPoyzlVCe61cyix5x2UUqZnQmSu7Tw/exec';
 
 let todosAlunos = [];
 let alunoAtual = null;
@@ -967,9 +967,16 @@ async function abrirModalEditar(nome) {
   if (!nome) return;
   const modal = document.getElementById('modal-editar');
   modal.style.display = 'flex';
-  document.getElementById('st-editar').textContent = '';
+  // Limpar campos antes de carregar
+  document.getElementById('edit-whatsapp').value = '';
+  document.getElementById('edit-email').value = '';
+  document.getElementById('edit-peso').value = '';
+  document.getElementById('edit-objetivo').value = '';
+  document.getElementById('edit-dores').value = '';
+  document.getElementById('st-editar').textContent = 'Carregando...';
   try {
     const d = await getData({ action: 'editar_aluno', aluno: nome });
+    document.getElementById('st-editar').textContent = '';
     if (d.ok && d.dados) {
       document.getElementById('edit-whatsapp').value = d.dados.whatsapp || '';
       document.getElementById('edit-email').value = d.dados.email || '';

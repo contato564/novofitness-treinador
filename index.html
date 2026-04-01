@@ -224,6 +224,7 @@ select.inp:focus,input.inp:focus{outline:none;border-color:var(--a3)}
         <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap" id="pa-badges"></div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start">
+        <button class="btn" style="margin-top:0;background:var(--surface);color:var(--text);border:1px solid var(--border);padding:8px 16px;font-size:12px" onclick="abrirModalEditar(alunoAtual)">✏️ EDITAR</button>
         <a id="pa-wa-btn" href="#" target="_blank" class="btn btn-wa" style="margin-top:0;text-decoration:none;display:none">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
           WhatsApp
@@ -446,7 +447,7 @@ select.inp:focus,input.inp:focus{outline:none;border-color:var(--a3)}
 <div id="toast"></div>
 
 <script>
-const WEBHOOK = 'https://script.google.com/macros/s/AKfycbyU3JRK9oNW3EmT6ftGKLyCyaOlEPD8p01YIMoNhPoyzlVCe61cyix5x2UUqZnQmSu7Tw/exec';
+const WEBHOOK = 'https://script.google.com/macros/s/AKfycbxbR-fT9bMlCp6N3rfoRYGPJHGBLuzoMM-XWtHUc0-CiHUdhS52T2pjmS2PxHFJl2O-Lw/exec';
 
 let todosAlunos = [];
 let alunoAtual = null;
@@ -960,6 +961,103 @@ async function bloquearAluno(email) {
 }
 
 document.addEventListener('DOMContentLoaded', () => { init(); carregarSolicitacoes(); });
+
+// ── EDITAR ALUNO ───────────────────────────────────────────
+async function abrirModalEditar(nome) {
+  if (!nome) return;
+  const modal = document.getElementById('modal-editar');
+  modal.style.display = 'flex';
+  document.getElementById('st-editar').textContent = '';
+  try {
+    const d = await getData({ action: 'editar_aluno', aluno: nome });
+    if (d.ok && d.dados) {
+      document.getElementById('edit-whatsapp').value = d.dados.whatsapp || '';
+      document.getElementById('edit-email').value = d.dados.email || '';
+      document.getElementById('edit-peso').value = d.dados.peso || '';
+      document.getElementById('edit-objetivo').value = d.dados.objetivo || '';
+      document.getElementById('edit-dores').value = d.dados.dores || '';
+    }
+  } catch(e) {
+    document.getElementById('st-editar').textContent = 'Erro ao carregar dados.';
+  }
+}
+
+function fecharModalEditar() {
+  document.getElementById('modal-editar').style.display = 'none';
+}
+
+async function salvarEdicaoAluno() {
+  const st = document.getElementById('st-editar');
+  st.textContent = 'Salvando...';
+  st.style.color = 'var(--muted)';
+  try {
+    const d = await postData({
+      tipo: 'salvar_edicao_aluno',
+      aluno: alunoAtual,
+      whatsapp: document.getElementById('edit-whatsapp').value.trim(),
+      email: document.getElementById('edit-email').value.trim(),
+      peso: document.getElementById('edit-peso').value,
+      objetivo: document.getElementById('edit-objetivo').value.trim(),
+      dores: document.getElementById('edit-dores').value.trim(),
+    });
+    if (d.ok) {
+      st.textContent = '✓ Salvo com sucesso!';
+      st.style.color = 'var(--green)';
+      // Atualizar objeto local
+      const a = todosAlunos.find(x => x.nome === alunoAtual);
+      if (a) {
+        a.whatsapp = document.getElementById('edit-whatsapp').value.trim().replace(/\D/g,'');
+        if (!a.whatsapp.startsWith('55')) a.whatsapp = '55' + a.whatsapp;
+        // Atualizar botão WhatsApp
+        const waBtn = document.getElementById('pa-wa-btn');
+        if (waBtn && a.whatsapp) {
+          waBtn.href = 'https://api.whatsapp.com/send?phone=' + a.whatsapp + '&text=Ol%C3%A1+' + encodeURIComponent(alunoAtual.split(' ')[0]) + '!+Passando+para+verificar+como+est%C3%A3o+seus+treinos.';
+          waBtn.style.display = 'inline-flex';
+        }
+      }
+      setTimeout(fecharModalEditar, 1500);
+    }
+  } catch(e) {
+    st.textContent = '✗ Erro: ' + e.message;
+    st.style.color = 'var(--a2)';
+  }
+}
 </script>
+
+<!-- MODAL EDITAR ALUNO -->
+<div id="modal-editar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;position:relative">
+    <button onclick="fecharModalEditar()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer">×</button>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:20px">EDITAR ALUNO</div>
+    <div style="display:grid;gap:14px" id="editar-campos">
+      <div>
+        <div style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:2px;margin-bottom:6px">WHATSAPP</div>
+        <input id="edit-whatsapp" class="inp" type="tel" placeholder="11999999999" style="width:100%">
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:2px;margin-bottom:6px">EMAIL</div>
+        <input id="edit-email" class="inp" type="email" style="width:100%">
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:2px;margin-bottom:6px">PESO (kg)</div>
+        <input id="edit-peso" class="inp" type="number" step="0.1" style="width:100%">
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:2px;margin-bottom:6px">OBJETIVO</div>
+        <input id="edit-objetivo" class="inp" type="text" style="width:100%">
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:2px;margin-bottom:6px">DORES/LESÕES</div>
+        <textarea id="edit-dores" class="inp" style="width:100%;min-height:80px;resize:vertical"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button class="btn" onclick="salvarEdicaoAluno()" style="flex:1;justify-content:center">SALVAR</button>
+      <button class="btn" onclick="fecharModalEditar()" style="background:var(--surface);color:var(--text);border:1px solid var(--border)">CANCELAR</button>
+    </div>
+    <div id="st-editar" style="margin-top:10px;font-size:12px;font-family:JetBrains Mono,monospace"></div>
+  </div>
+</div>
+
 </body>
 </html>
